@@ -2,7 +2,7 @@
 
 Independent, community-driven Vulkan compute research for AMD Vega GPUs, starting with Radeon VII (gfx906).
 
-**Status: v0.1 release candidate — not yet publicly released.** This is a research project, not an AMD driver replacement or a complete ROCm/CUDA alternative.
+**Status: v0.1.0 Early Research Preview.** This is a research project, not an AMD driver replacement or a complete ROCm/CUDA alternative. The initial release is limited to one Vulkan smoke test and scoped historical results.
 
 ## What has been demonstrated
 
