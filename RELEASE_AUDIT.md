@@ -6,7 +6,7 @@
 - Selected ref: `release/public-v0.1-candidate`.
 - Source commit supplied by the project owner: `ccb7810d1f1982ce1b2085deeab54987fbc63cb0`.
 - This directory is a clean file export; it contains no source `.git` directory or private commit history.
-- GitHub connector content was fetched at the exact commit. Local `git ls-remote` access and authenticated GitHub CLI were unavailable, so the source commit could not be independently verified through local Git.
+- GitHub API verified the staging commit SHA, author, message, timestamp, and parent. The source `smoke/PROVENANCE.md` states the Python runner, shader, and build files are project-authored for Phase V.1; its parent commit's `SOURCE-MANIFEST.sha256` matches the exported `add_one.comp`, `vulkan_add_one.py`, and `requirements.txt` byte-for-byte. The owner separately confirmed authorship/license authority for project-owned code and approved MIT on 2026-11-26.
 
 ## Included
 
@@ -15,6 +15,9 @@
 - `docs/results.md`, `docs/compatibility.md`.
 - Issue and pull request templates under `.github/`.
 - `.gitignore`.
+- `LICENSE` (MIT, copyright 2026 VEGA Revival project contributors).
+- `THIRD_PARTY_NOTICES.md` and upstream license texts for the Python binding and its dependencies.
+- `SMOKE_TEST.md` with the fresh Radeon VII test result.
 
 ## Excluded
 
@@ -29,15 +32,15 @@
 |---|---|---|
 | Clean export; no private Git history | PASS | Standalone Git root commit `456d05b`; no source `.git` history imported; working tree clean |
 | File and secret/path review | PASS, pattern-based | Scanned all included source/docs for common credential and absolute path patterns; matches were explanatory policy text and this audit only. Repeat a human review before remote publication |
-| Source provenance and third-party license review | BLOCKED | Obtain owner confirmation and verify origins of project-authored and adapted material; audit dependency/license notices |
-| MIT license approval | BLOCKED | Owner approval is required; do not add an MIT license or publish until documented |
-| Fresh build and GPU smoke test | BLOCKED | Python 3.15.2 syntax compilation passed for `smoke/vulkan_add_one.py`; Vulkan binding is not installed, glslang/glslc are not available, and no GPU smoke run was performed. Install the pinned dependency and official glslang 16.6.0, then run the README commands on a qualified Radeon VII and record sanitized output |
+| Source provenance and third-party license review | PASS for included files | Source commit verified with GitHub API; the three executable/dependency source files match the prior source manifest SHA-256. Owner authorized project-owned code. Full GEMM/PyTorch and internal research outputs excluded. Dependencies: `vulkan` 1.3.275.1 (Apache-2.0; bundled license, metadata field says UNKNOWN), `cffi` 2.1.1 (MIT-0), `pycparser` 3.12 (BSD-3-Clause); glslang 16.6.0 build tool (BSD-3-Clause, not redistributed). See `THIRD_PARTY_NOTICES.md`. |
+| MIT license approval | PASS | Owner explicitly confirmed MIT selection and publication authorization on 2026-11-26; `LICENSE` added |
+| Fresh build and GPU smoke test | PASS | Windows 10 build 19045, Radeon VII 1002:66AF; glslang 16.6.0 compiled for Vulkan 1.1; Python 3.15.2 + vulkan 1.3.275.1; output `result=42`, fence signaled, `PASS`. One bounded dispatch only |
 | Safety qualification | PARTIAL | Only the bounded one-dispatch smoke test is included; historical Phase V.7 documents a 95 °C thermal stop at four accumulators. No sustained stress tooling is included |
-| New GitHub repository / public visibility | NOT STARTED | Keep `VEGA-Revival` private until all prior gates pass, then create with a clean initial history and confirm permissions |
-| v0.1.0 release and announcements | NOT STARTED | After publication gates; draft announcements separately and do not post externally without approval |
+| New GitHub repository / public visibility | IN PROGRESS | Create separate repository `VEGA-Revival` with a clean initial history; keep source private |
+| v0.1.0 release and announcements | IN PROGRESS | Publish Early Research Preview and release notes. Announcements may be drafted; do not post externally without approval |
 
 ## Current limitation
 
-This is a reviewable release-candidate bundle, not a verified build or a published project. The results in `docs/results.md` are historical measurements and are not fresh tests of this export. No license rights are granted by this bundle.
+The smoke test was freshly run and passed. Historical results in `docs/results.md` are not new measurements. Only the code/data authorized by the owner and the small candidate subset are included; no internal study harnesses are included.
 
-GitHub CLI `gh` was not found and local Git authentication to the private source remote was not confirmed. No remote repository was created or changed.
+GitHub CLI installation was attempted from the official GitHub CLI 2.106.0 MSI; winget verified its hash but Windows Installer returned 1618 because another installation is active. Resume installation after that installer finishes, authenticate with the connected GitHub account, then create the independent repository and publish the verified commit. Never change visibility of or push to the source repository.
