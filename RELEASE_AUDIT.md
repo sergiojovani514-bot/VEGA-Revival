@@ -37,10 +37,12 @@
 | Fresh build and GPU smoke test | PASS | Windows 10 build 19045, Radeon VII 1002:66AF; glslang 16.6.0 compiled for Vulkan 1.1; Python 3.15.2 + vulkan 1.3.275.1; output `result=42`, fence signaled, `PASS`. One bounded dispatch only |
 | Safety qualification | PARTIAL | Only the bounded one-dispatch smoke test is included; historical Phase V.7 documents a 95 °C thermal stop at four accumulators. No sustained stress tooling is included |
 | New GitHub repository / public visibility | PASS | `sergiojovani514-bot/VEGA-Revival` is public, with fresh root commit `456d05b`; remote tree contains selected public files only. Source repository remains private |
-| v0.1.0 release and announcements | IN PROGRESS | Create release tag and Early Research Preview notes; prepare announcement drafts without posting externally |
+| v0.1.0 release and announcements | PASS | Public GitHub release `v0.1.0` created with Early Research Preview notes. Announcement drafts are saved separately and have not been posted |
 
 ## Current limitation
 
 The smoke test was freshly run and passed. Historical results in `docs/results.md` are not new measurements. Only the code/data authorized by the owner and the small candidate subset are included; no internal study harnesses are included.
 
 GitHub CLI 2.106.0 is installed and authenticated. The new repository was created private, and its remote tree was inspected before making it public. The source repository remains private. Announcements are drafts only and must not be posted to third-party communities without separate approval.
+
+Published release: https://github.com/sergiojovani514-bot/VEGA-Revival/releases/tag/v0.1.0
