@@ -27,11 +27,11 @@
 
 | Gate | Status | Evidence / next action |
 |---|---|---|
-| Clean export; no private Git history | PASS for this directory | This is a standalone file bundle; initialize a fresh Git repository only after release authorization |
-| File and secret/path review | Pending local scan | Review every included file and repeat before remote publication |
+| Clean export; no private Git history | PASS | Standalone Git root commit `456d05b`; no source `.git` history imported; working tree clean |
+| File and secret/path review | PASS, pattern-based | Scanned all included source/docs for common credential and absolute path patterns; matches were explanatory policy text and this audit only. Repeat a human review before remote publication |
 | Source provenance and third-party license review | BLOCKED | Obtain owner confirmation and verify origins of project-authored and adapted material; audit dependency/license notices |
 | MIT license approval | BLOCKED | Owner approval is required; do not add an MIT license or publish until documented |
-| Fresh build and GPU smoke test | BLOCKED | `gh` and Python are unavailable in PATH; glslang 16.6.0 is not installed. Run the README commands on a qualified Radeon VII and record sanitized output |
+| Fresh build and GPU smoke test | BLOCKED | Python 3.15.2 syntax compilation passed for `smoke/vulkan_add_one.py`; Vulkan binding is not installed, glslang/glslc are not available, and no GPU smoke run was performed. Install the pinned dependency and official glslang 16.6.0, then run the README commands on a qualified Radeon VII and record sanitized output |
 | Safety qualification | PARTIAL | Only the bounded one-dispatch smoke test is included; historical Phase V.7 documents a 95 °C thermal stop at four accumulators. No sustained stress tooling is included |
 | New GitHub repository / public visibility | NOT STARTED | Keep `VEGA-Revival` private until all prior gates pass, then create with a clean initial history and confirm permissions |
 | v0.1.0 release and announcements | NOT STARTED | After publication gates; draft announcements separately and do not post externally without approval |
@@ -39,3 +39,5 @@
 ## Current limitation
 
 This is a reviewable release-candidate bundle, not a verified build or a published project. The results in `docs/results.md` are historical measurements and are not fresh tests of this export. No license rights are granted by this bundle.
+
+GitHub CLI `gh` was not found and local Git authentication to the private source remote was not confirmed. No remote repository was created or changed.
