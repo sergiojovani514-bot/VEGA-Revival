@@ -4,15 +4,15 @@
 
 VEGA Revival explores how older AMD GPUs can remain useful for modern compute, AI inference and graphics workloads using documented APIs and reproducible experiments.
 
-[Early Research Preview v0.1.0](https://github.com/sergiojovani514-bot/VEGA-Revival/releases/tag/v0.1.0) · [Research results](docs/results.md) · [Compatibility](docs/compatibility.md) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/sergiojovani514-bot/VEGA-Revival/discussions)
+[Early Research Preview v0.1.0](https://github.com/sergiojovani514-bot/VEGA-Revival/releases/tag/v0.1.0) · [Compute Kernels v0.2.0 candidate](tests/vulkan-compute/gemm-v0.2/README.md) · [Research results](docs/results.md) · [Compatibility](docs/compatibility.md) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/sergiojovani514-bot/VEGA-Revival/discussions)
 
 ## Current capabilities
 
 | Capability | Status |
 |---|---|
 | Radeon VII Vulkan smoke test | Public, verified on Windows 10 |
-| FP32 and FP16 GEMM | Historical measurements; full kernels not yet released |
-| Packed FP16 | Historical kernel results and instruction lowering recorded |
+| Bounded GEMM kernels | v0.2.0 candidate: four modes passed N=32 CPU-reference checks on one Radeon VII; other sizes unqualified |
+| Paired Packed FP16 | N=32 correctness passed; the exact pipeline emitted packed half FMA instructions |
 | PyTorch Vulkan inference | Experimental, historical small-model results; integration not shipped |
 | HBM2, LDS and cache characterization | Planned research direction |
 | Quantized LLM inference | Planned research direction |
@@ -47,6 +47,10 @@ glslang -V --target-env vulkan1.1 -S comp -o smoke/add_one.spv smoke/add_one.com
 
 Use the full path to the official compiler if it is not on PATH. Expected output: `result=42` and `PASS`. See [the verified test record](SMOKE_TEST.md). This single dispatch is a functionality check, not a stress test.
 
+## Compute kernels — v0.2.0 candidate
+
+A bounded Vulkan GEMM runner covers FP32, FP16 accumulation, FP16 input with FP32 accumulation, and paired Packed FP16. All four passed one synchronized N=32 correctness case on Radeon VII. This is not a performance or repeatability qualification; larger sizes are not qualified. See the [package instructions and full test record](tests/vulkan-compute/gemm-v0.2/README.md).
+
 ## Join the research
 
 We welcome independent results, particularly from Radeon VII, Vega 56/64 and Instinct MI25/MI50/MI60 owners. Other hardware and operating systems are not yet qualified. If the smoke test rejects your device, do not bypass the device check; share a compatibility report instead.
@@ -56,3 +60,4 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md), then browse [open issues](https://githu
 ## Project scope and license
 
 This is an independent research project, not an AMD driver replacement or a complete ROCm/CUDA alternative. Project-owned code is released under [MIT](LICENSE); see [third-party notices](THIRD_PARTY_NOTICES.md) for dependencies. The published v0.1.0 release remains an early preview.
+
