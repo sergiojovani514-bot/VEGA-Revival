@@ -1,0 +1,4 @@
+*.spv
+__pycache__/
+.venv/
+

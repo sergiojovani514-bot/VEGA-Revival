@@ -1,0 +1,202 @@
+#version 450
+#extension GL_EXT_shader_16bit_storage : enable
+#extension GL_EXT_shader_explicit_arithmetic_types_float16 : enable
+#extension GL_EXT_shader_explicit_arithmetic_types_int16 : enable
+
+#ifndef REG_M
+#define REG_M 4
+#endif
+#ifndef REG_N
+#define REG_N 4
+#endif
+#ifndef WG_X
+#define WG_X 8
+#endif
+#ifndef WG_Y
+#define WG_Y 8
+#endif
+#ifndef BK
+#define BK 32
+#endif
+#ifndef LDS_PAD
+#define LDS_PAD 0
+#endif
+#define TM (REG_M * WG_Y)
+#define TN (REG_N * WG_X)
+layout(local_size_x=WG_X,local_size_y=WG_Y,local_size_z=1) in;
+layout(push_constant) uniform Params { uint n; } pc;
+
+#if defined(MODE_FP32)
+ #if defined(VECTOR_LOADS)
+  layout(set=0,binding=0,std430) readonly buffer ABlock { vec4 v[]; } A;
+  layout(set=0,binding=1,std430) readonly buffer BBlock { vec4 v[]; } B;
+ #else
+  layout(set=0,binding=0,std430) readonly buffer ABlock { float v[]; } A;
+  layout(set=0,binding=1,std430) readonly buffer BBlock { float v[]; } B;
+ #endif
+ layout(set=0,binding=2,std430) writeonly buffer CBlock { float v[]; } C;
+ #define IN_T float
+ #define SH_T float
+ #define ACC_T float
+ #define OUT_T float
+ #define TO_ACC(x) (x)
+ #define TO_SHARED(x) (x)
+ #define SHARED_ACC(x) (x)
+ #define STORE_C(i,x) C.v[i]=(x)
+#elif defined(MODE_FP16_ACC16)
+ #if defined(VECTOR_LOADS)
+  layout(set=0,binding=0,std430) readonly buffer ABlock { f16vec2 v[]; } A;
+  layout(set=0,binding=1,std430) readonly buffer BBlock { f16vec2 v[]; } B;
+ #else
+  layout(set=0,binding=0,std430) readonly buffer ABlock { float16_t v[]; } A;
+  layout(set=0,binding=1,std430) readonly buffer BBlock { float16_t v[]; } B;
+ #endif
+ layout(set=0,binding=2,std430) writeonly buffer CBlock { float16_t v[]; } C;
+ #define IN_T float16_t
+ #define SH_T float16_t
+ #define ACC_T float16_t
+ #define OUT_T float16_t
+ #define TO_ACC(x) (x)
+ #define TO_SHARED(x) (x)
+ #define SHARED_ACC(x) (x)
+ #define STORE_C(i,x) C.v[i]=(x)
+#elif defined(MODE_FP16_ACC32)
+ #if defined(VECTOR_LOADS)
+  layout(set=0,binding=0,std430) readonly buffer ABlock { f16vec2 v[]; } A;
+  layout(set=0,binding=1,std430) readonly buffer BBlock { f16vec2 v[]; } B;
+ #else
+  layout(set=0,binding=0,std430) readonly buffer ABlock { float16_t v[]; } A;
+  layout(set=0,binding=1,std430) readonly buffer BBlock { float16_t v[]; } B;
+ #endif
+ layout(set=0,binding=2,std430) writeonly buffer CBlock { float v[]; } C;
+ #define IN_T float16_t
+ #define SH_T float16_t
+ #define ACC_T float
+ #define OUT_T float
+ #define TO_ACC(x) float(x)
+ #define TO_SHARED(x) (x)
+ #define SHARED_ACC(x) float(x)
+ #define STORE_C(i,x) C.v[i]=(x)
+#elif defined(MODE_BF16_FP32)
+ #if defined(VECTOR_LOADS)
+  layout(set=0,binding=0,std430) readonly buffer ABlock { u16vec2 v[]; } A;
+  layout(set=0,binding=1,std430) readonly buffer BBlock { u16vec2 v[]; } B;
+ #else
+  layout(set=0,binding=0,std430) readonly buffer ABlock { uint16_t v[]; } A;
+  layout(set=0,binding=1,std430) readonly buffer BBlock { uint16_t v[]; } B;
+ #endif
+ layout(set=0,binding=2,std430) writeonly buffer CBlock { float v[]; } C;
+ #define IN_T uint16_t
+ #define SH_T float
+ #define ACC_T float
+ #define OUT_T float
+ float bf16_to_fp32(uint16_t x) { return uintBitsToFloat(uint(x)<<16); }
+ #define TO_ACC(x) bf16_to_fp32(x)
+ #define TO_SHARED(x) bf16_to_fp32(x)
+ #define SHARED_ACC(x) (x)
+ #define STORE_C(i,x) C.v[i]=(x)
+#else
+ #error define one precision mode
+#endif
+
+IN_T load_a(uint i) {
+#if defined(VECTOR_LOADS)
+ #if defined(MODE_FP32)
+ return A.v[i>>2u][i&3u];
+ #else
+ return A.v[i>>1u][i&1u];
+ #endif
+#else
+ return A.v[i];
+#endif
+}
+IN_T load_b(uint i) {
+#if defined(VECTOR_LOADS)
+ #if defined(MODE_FP32)
+ return B.v[i>>2u][i&3u];
+ #else
+ return B.v[i>>1u][i&1u];
+ #endif
+#else
+ return B.v[i];
+#endif
+}
+
+#if defined(PING_PONG)
+shared SH_T tileA[TM][BK+LDS_PAD];
+shared SH_T tileB[BK][TN+LDS_PAD];
+ #define A_TILE(s,r,k) tileA[r][k]
+ #define B_TILE(s,k,c) tileB[k][c]
+#else
+shared SH_T tileA[TM][BK+LDS_PAD];
+shared SH_T tileB[BK][TN+LDS_PAD];
+ #define A_TILE(s,r,k) tileA[r][k]
+ #define B_TILE(s,k,c) tileB[k][c]
+#endif
+
+void load_tiles(uint slot,uint baseK,uint n,uint lid,uint threads) {
+#if defined(VECTOR_LOADS) && defined(MODE_FP32)
+    for(uint q=lid*4u;q<TM*BK;q+=threads*4u){uint r=q/BK,k=q%BK;vec4 x=A.v[(gl_WorkGroupID.y*TM+r)*n/4u+(baseK+k)/4u];A_TILE(slot,r,k)=x.x;A_TILE(slot,r,k+1u)=x.y;A_TILE(slot,r,k+2u)=x.z;A_TILE(slot,r,k+3u)=x.w;}
+    for(uint q=lid*4u;q<BK*TN;q+=threads*4u){uint k=q/TN,c=q%TN;vec4 x=B.v[((baseK+k)*n+gl_WorkGroupID.x*TN+c)/4u];B_TILE(slot,k,c)=x.x;B_TILE(slot,k,c+1u)=x.y;B_TILE(slot,k,c+2u)=x.z;B_TILE(slot,k,c+3u)=x.w;}
+#elif defined(VECTOR_LOADS)
+    for(uint q=lid*2u;q<TM*BK;q+=threads*2u){uint r=q/BK,k=q%BK;f16vec2 x;
+ #if defined(MODE_BF16_FP32)
+       u16vec2 y=A.v[((gl_WorkGroupID.y*TM+r)*n+baseK+k)/2u];A_TILE(slot,r,k)=TO_SHARED(y.x);A_TILE(slot,r,k+1u)=TO_SHARED(y.y);
+ #else
+       x=A.v[((gl_WorkGroupID.y*TM+r)*n+baseK+k)/2u];A_TILE(slot,r,k)=TO_SHARED(x.x);A_TILE(slot,r,k+1u)=TO_SHARED(x.y);
+ #endif
+    }
+    for(uint q=lid*2u;q<BK*TN;q+=threads*2u){uint k=q/TN,c=q%TN;
+ #if defined(MODE_BF16_FP32)
+       u16vec2 y=B.v[((baseK+k)*n+gl_WorkGroupID.x*TN+c)/2u];B_TILE(slot,k,c)=TO_SHARED(y.x);B_TILE(slot,k,c+1u)=TO_SHARED(y.y);
+ #else
+       f16vec2 x=B.v[((baseK+k)*n+gl_WorkGroupID.x*TN+c)/2u];B_TILE(slot,k,c)=TO_SHARED(x.x);B_TILE(slot,k,c+1u)=TO_SHARED(x.y);
+ #endif
+    }
+#else
+    for(uint q=lid;q<TM*BK;q+=threads){uint r=q/BK,k=q%BK;A_TILE(slot,r,k)=TO_SHARED(load_a((gl_WorkGroupID.y*TM+r)*n+baseK+k));}
+    for(uint q=lid;q<BK*TN;q+=threads){uint k=q/TN,c=q%TN;B_TILE(slot,k,c)=TO_SHARED(load_b((baseK+k)*n+gl_WorkGroupID.x*TN+c));}
+#endif
+}
+
+void main(){
+    uint n=pc.n;uint lid=gl_LocalInvocationID.y*WG_X+gl_LocalInvocationID.x;uint threads=WG_X*WG_Y;
+    uint row0=gl_WorkGroupID.y*TM+gl_LocalInvocationID.y*REG_M;uint col0=gl_WorkGroupID.x*TN+gl_LocalInvocationID.x*REG_N;
+    ACC_T accum[REG_M][REG_N];
+    for(uint rm=0;rm<REG_M;rm++)for(uint rn=0;rn<REG_N;rn++)accum[rm][rn]=ACC_T(0);
+#if defined(PACKED_F16)
+    f16vec2 packed_accum[REG_M][REG_N];
+    for(uint rm=0;rm<REG_M;rm++)for(uint rn=0;rn<REG_N;rn++)packed_accum[rm][rn]=f16vec2(0.0hf);
+#endif
+    uint slot=0;
+    load_tiles(slot,0u,n,lid,threads);barrier();
+    uint tiles=n/BK;
+    for(uint t=0;t<tiles;t++){
+#if defined(PACKED_F16)
+      for(uint k=0;k<BK;k+=2u)for(uint rm=0;rm<REG_M;rm++){
+        f16vec2 av=f16vec2(A_TILE(slot,gl_LocalInvocationID.y*REG_M+rm,k),A_TILE(slot,gl_LocalInvocationID.y*REG_M+rm,k+1u));
+        for(uint rn=0;rn<REG_N;rn++){uint col=gl_LocalInvocationID.x*REG_N+rn;f16vec2 bv=f16vec2(B_TILE(slot,k,col),B_TILE(slot,k+1u,col));packed_accum[rm][rn]=fma(av,bv,packed_accum[rm][rn]);}
+      }
+#else
+      for(uint k=0;k<BK;k++)for(uint rm=0;rm<REG_M;rm++){
+        ACC_T av=SHARED_ACC(A_TILE(slot,gl_LocalInvocationID.y*REG_M+rm,k));
+        for(uint rn=0;rn<REG_N;rn++){ACC_T bv=SHARED_ACC(B_TILE(slot,k,gl_LocalInvocationID.x*REG_N+rn));accum[rm][rn]=fma(av,bv,accum[rm][rn]);}
+      }
+#endif
+      if(t+1u<tiles){
+        barrier();load_tiles(slot,(t+1u)*BK,n,lid,threads);barrier();
+      }
+    }
+    for(uint rm=0;rm<REG_M;rm++)for(uint rn=0;rn<REG_N;rn++){
+      uint row=row0+rm,col=col0+rn;
+      if(row<n&&col<n){
+#if defined(PACKED_F16)
+        float16_t result=packed_accum[rm][rn].x+packed_accum[rm][rn].y;STORE_C(row*n+col,result);
+#else
+        STORE_C(row*n+col,OUT_T(accum[rm][rn]));
+#endif
+      }
+    }
+}
+
+
