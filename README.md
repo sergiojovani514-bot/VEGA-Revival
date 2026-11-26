@@ -1,20 +1,40 @@
-# VEGA Revival — Compute Foundation
+# VEGA Revival
 
-Independent, community-driven Vulkan compute research for AMD Vega GPUs, starting with Radeon VII (gfx906).
+**Community-driven Vulkan compute and architecture research for AMD Vega GPUs.**
 
-**Status: v0.1.0 Early Research Preview.** This is a research project, not an AMD driver replacement or a complete ROCm/CUDA alternative. The initial release is limited to one Vulkan smoke test and scoped historical results.
+VEGA Revival explores how older AMD GPUs can remain useful for modern compute, AI inference and graphics workloads using documented APIs and reproducible experiments.
 
-## What has been demonstrated
+[Early Research Preview v0.1.0](https://github.com/sergiojovani514-bot/VEGA-Revival/releases/tag/v0.1.0) · [Research results](docs/results.md) · [Compatibility](docs/compatibility.md) · [Roadmap](ROADMAP.md) · [Discussions](https://github.com/sergiojovani514-bot/VEGA-Revival/discussions)
 
-On one Radeon VII under Windows 10, project experiments verified Vulkan compute, CPU-reference-checked GEMM, packed FP16 instructions and an experimental PyTorch Vulkan inference path. The included smoke test checks a staged host-to-device-to-host computation (41 → 42). It intentionally accepts only Radeon VII PCI 1002:66AF; other devices are not yet qualified.
+## Current capabilities
 
-See [research results](docs/results.md) for measured numbers and limitations. The full GEMM and PyTorch harnesses are not included in this initial candidate.
+| Capability | Status |
+|---|---|
+| Radeon VII Vulkan smoke test | Public, verified on Windows 10 |
+| FP32 and FP16 GEMM | Historical measurements; full kernels not yet released |
+| Packed FP16 | Historical kernel results and instruction lowering recorded |
+| PyTorch Vulkan inference | Experimental, historical small-model results; integration not shipped |
+| HBM2, LDS and cache characterization | Planned research direction |
+| Quantized LLM inference | Planned research direction |
+| Mesh shaders, Nanite and FSR | Exploratory ideas only; no implementation shipped |
 
-The candidate smoke test passed on a Radeon VII. See the [test record](SMOKE_TEST.md) for the exact environment and output.
+## Selected research results
 
-## Quick start (Windows, Radeon VII)
+Historical measurements from one Radeon VII (gfx906), not performance claims for the v0.1 smoke test.
 
-Use a working vendor Vulkan driver, a 64-bit Python virtual environment, and the official Khronos glslang 16.6.0 compiler (https://github.com/KhronosGroup/glslang/releases/tag/16.6.0; Windows executable `glslang.exe`). No driver modifications or administrator privileges are intended.
+| Workload | Result |
+|---|---:|
+| FP32 GEMM, 8192² | 3.391 TFLOPS |
+| FP16 input, FP32 accumulation GEMM, 8192² | 4.496 TFLOPS |
+| Packed FP16 GEMM, 8192² | 4.989 TFLOPS |
+| Sustained FP32 ALU, two accumulators | 5.4342 TFLOPS (three runs) |
+| Experimental mini Transformer | 2,224 parameters, CPU-reference agreement |
+
+GEMM and ALU results are different workloads; do not compare them as equivalent measurements. Read [results and limitations](docs/results.md) and [benchmark methodology](docs/benchmark-methodology.md). Machine-readable historical GEMM summaries are available in [data/gemm-summary.csv](data/gemm-summary.csv).
+
+## Quick start — Windows, Radeon VII
+
+Use a working Vulkan driver, 64-bit Python and the official [Khronos glslang 16.6.0](https://github.com/KhronosGroup/glslang/releases/tag/16.6.0) compiler. The smoke test accepts Radeon VII PCI ID `1002:66AF` only. No driver modifications or administrator privileges are intended.
 
 From the repository root in PowerShell:
 
@@ -25,21 +45,14 @@ glslang -V --target-env vulkan1.1 -S comp -o smoke/add_one.spv smoke/add_one.com
 .\.venv\Scripts\python.exe smoke/vulkan_add_one.py
 ```
 
-Use the full path to the official compiler if it is not on PATH. Expected output includes result=42 and PASS. If a device, compiler or Vulkan dependency is missing, report the error rather than bypassing checks.
+Use the full path to the official compiler if it is not on PATH. Expected output: `result=42` and `PASS`. See [the verified test record](SMOKE_TEST.md). This single dispatch is a functionality check, not a stress test.
 
-## Help wanted
+## Join the research
 
-We welcome reproducibility reports from Radeon VII, Vega 56/64 and Instinct MI50/MI60 owners. Support for devices other than the tested Radeon VII is a research goal, not a claim. See [contributing](CONTRIBUTING.md).
+We welcome independent results, particularly from Radeon VII, Vega 56/64 and Instinct MI25/MI50/MI60 owners. Other hardware and operating systems are not yet qualified. If the smoke test rejects your device, do not bypass the device check; share a compatibility report instead.
 
-## Roadmap
+Read [CONTRIBUTING.md](CONTRIBUTING.md), then browse [open issues](https://github.com/sergiojovani514-bot/VEGA-Revival/issues) or join a discussion. Benchmark reports, documentation fixes and reviewed code contributions are welcome.
 
-- Vulkan compute and memory architecture research.
-- Quantized inference and llama.cpp Vulkan optimization.
-- Experimental PyTorch integration.
-- Exploratory geometry, meshlet and upscaling research.
+## Project scope and license
 
-No FSR, mesh shader emulation, Nanite acceleration or production LLM support is included in this candidate.
-
-## Licensing
-
-The project intends to use MIT for its own code, subject to owner approval and provenance review before public release. No license grant is made by this private candidate. Third-party dependencies keep their respective licenses. This project is independent of AMD.
+This is an independent research project, not an AMD driver replacement or a complete ROCm/CUDA alternative. Project-owned code is released under [MIT](LICENSE); see [third-party notices](THIRD_PARTY_NOTICES.md) for dependencies. The published v0.1.0 release remains an early preview.

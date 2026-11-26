@@ -1,14 +1,14 @@
 # Compatibility matrix
 
-Only one Radeon VII on Windows 10 is represented in the historical research notes. This is not a fresh build qualification for this export.
+The published v0.1.0 single-dispatch smoke test passed on one Radeon VII under Windows 10. See [the test record](../SMOKE_TEST.md). This is a functionality check, not a guarantee of application compatibility, performance or sustained-load stability.
 
-| GPU | PCI ID | OS / driver / Vulkan | Status |
+| GPU | PCI ID | Environment | Status |
 |---|---|---|---|
-| Radeon VII | 1002:66AF | Windows 10 / historical vendor stack / Vulkan 1.3.260 | Historical experiments reported; smoke test must be rerun on release export |
+| Radeon VII | 1002:66AF | Windows 10 Pro build 19045 / Vulkan 1.3.260 | v0.1.0 smoke test passed on one device |
 | Radeon Vega 56 | Not recorded | Not recorded | Untested; reports welcome |
 | Radeon Vega 64 | Not recorded | Not recorded | Untested; reports welcome |
 | Radeon Instinct MI25 | Not recorded | Not recorded | Untested; reports welcome |
 | Radeon Instinct MI50 | Not recorded | Not recorded | Untested; reports welcome |
 | Radeon Instinct MI60 | Not recorded | Not recorded | Untested; reports welcome |
 
-Only Radeon VII PCI 1002:66AF is accepted by the included smoke test. No support claim is made for other devices, operating systems, drivers, or Vulkan implementations.
+The smoke test currently accepts only PCI ID 1002:66AF. Other devices need a separately reviewed device-selection change and validation. Linux and other driver configurations are unqualified. A Vulkan API version alone does not establish support for all shader features.
