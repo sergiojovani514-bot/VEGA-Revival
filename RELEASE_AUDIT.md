@@ -36,11 +36,11 @@
 | MIT license approval | PASS | Owner explicitly confirmed MIT selection and publication authorization on 2026-11-26; `LICENSE` added |
 | Fresh build and GPU smoke test | PASS | Windows 10 build 19045, Radeon VII 1002:66AF; glslang 16.6.0 compiled for Vulkan 1.1; Python 3.15.2 + vulkan 1.3.275.1; output `result=42`, fence signaled, `PASS`. One bounded dispatch only |
 | Safety qualification | PARTIAL | Only the bounded one-dispatch smoke test is included; historical Phase V.7 documents a 95 °C thermal stop at four accumulators. No sustained stress tooling is included |
-| New GitHub repository / public visibility | PRIVATE CREATED | `sergiojovani514-bot/VEGA-Revival` has a fresh root commit `456d05b` and two subsequent export commits; remote tree contains only selected public files. Source repository remains private |
-| v0.1.0 release and announcements | READY TO PUBLISH | Public switch and release tag remain. Announcements may be drafted; do not post externally without approval |
+| New GitHub repository / public visibility | PASS | `sergiojovani514-bot/VEGA-Revival` is public, with fresh root commit `456d05b`; remote tree contains selected public files only. Source repository remains private |
+| v0.1.0 release and announcements | IN PROGRESS | Create release tag and Early Research Preview notes; prepare announcement drafts without posting externally |
 
 ## Current limitation
 
 The smoke test was freshly run and passed. Historical results in `docs/results.md` are not new measurements. Only the code/data authorized by the owner and the small candidate subset are included; no internal study harnesses are included.
 
-GitHub CLI 2.106.0 is installed and authenticated. The new repository was created private, and its remote tree was inspected before public release. Never change visibility of or push to the source repository.
+GitHub CLI 2.106.0 is installed and authenticated. The new repository was created private, and its remote tree was inspected before making it public. The source repository remains private. Announcements are drafts only and must not be posted to third-party communities without separate approval.

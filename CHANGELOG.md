@@ -5,3 +5,5 @@
 Initial public Compute Foundation release after MIT license approval, source provenance and dependency review, clean-export verification, and a reproducible Radeon VII smoke test.
 
 Scope: Vulkan compute smoke test, historical Radeon VII research results, compatibility matrix, safe contribution guidance, and community templates. The full GEMM and PyTorch harnesses are excluded.
+
+See [release notes](RELEASE_NOTES-v0.1.0.md) for verification and limitations.
