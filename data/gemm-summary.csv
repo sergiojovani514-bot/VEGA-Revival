@@ -1,0 +1,17 @@
+phase,gpu,os,n,precision,throughput_tflops,measurement_scope
+V.3,Radeon VII,Windows 10,1024,fp32,1.191,historical_summary
+V.3,Radeon VII,Windows 10,1024,fp16_acc16,1.151,historical_summary
+V.3,Radeon VII,Windows 10,1024,fp16_acc32,1.409,historical_summary
+V.3,Radeon VII,Windows 10,1024,bf16_storage_acc32,0.921,historical_summary
+V.3,Radeon VII,Windows 10,2048,fp32,3.314,historical_summary
+V.3,Radeon VII,Windows 10,2048,fp16_acc16,3.082,historical_summary
+V.3,Radeon VII,Windows 10,2048,fp16_acc32,4.040,historical_summary
+V.3,Radeon VII,Windows 10,2048,bf16_storage_acc32,2.009,historical_summary
+V.3,Radeon VII,Windows 10,4096,fp32,3.389,historical_summary
+V.3,Radeon VII,Windows 10,4096,fp16_acc16,3.618,historical_summary
+V.3,Radeon VII,Windows 10,4096,fp16_acc32,4.421,historical_summary
+V.3,Radeon VII,Windows 10,4096,bf16_storage_acc32,2.200,historical_summary
+V.3,Radeon VII,Windows 10,8192,fp32,3.391,historical_summary
+V.3,Radeon VII,Windows 10,8192,fp16_acc16,3.641,historical_summary
+V.3,Radeon VII,Windows 10,8192,fp16_acc32,4.496,historical_summary
+V.3,Radeon VII,Windows 10,8192,bf16_storage_acc32,2.623,historical_summary
